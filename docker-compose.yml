@@ -1,0 +1,343 @@
+version: "3.7"
+services:
+
+  ##############################################################
+  ###  Kafka/zookeeper:
+  ##############################################################
+  zookeeper:
+    container_name: zookeeper-dev
+    image: confluentinc/cp-zookeeper:latest
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    container_name: NBWBCUBS-PRMKafKa1
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  ##############################################################
+  ###  Backend services:
+  ##############################################################
+  config-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/config:dev
+    container_name: config-dev
+    restart: always
+    ports:
+      - "8088:8088"
+    healthcheck:
+      test: ls -la
+      interval: 4s
+      timeout: 2s
+      retries: 3
+  ##############################################################
+  discovery-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/discovery:dev
+    container_name: discovery-dev
+    restart: always
+    ports:
+      - "8061:8061"
+    depends_on:
+      config-service:
+        condition: service_healthy
+    links:
+      - config-service
+    healthcheck:
+      test: ls -la
+      interval: 4s
+      timeout: 2s
+      retries: 3
+  ##############################################################
+  key-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/kms:dev
+    container_name: kms-dev
+    restart: always
+    ports:
+      - "55403:55403"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+    volumes:
+      - /home/prm/dev/kms/uploads:/uploads
+  ##############################################################
+  messaging-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/mms:dev
+    container_name: mms-dev
+    restart: always
+    ports:
+      - "55404:55404"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/mms/uploads:/uploads
+  ##############################################################
+  storage-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/sms:dev
+    container_name: sms-dev
+    restart: always
+    ports:
+      - "55400:55400"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/sms/uploads:/uploads
+  ##############################################################
+  document-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/dms:dev
+    container_name: dms-dev
+    restart: always
+    ports:
+      - "55405:55405"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/dms/uploads:/uploads
+  ##############################################################
+  calendar-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/cms:dev
+    container_name: cms-dev
+    restart: always
+    ports:
+      - "55407:55407"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/cms/uploads:/uploads
+  ##############################################################
+  identity-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/ims:dev
+    container_name: ims-dev
+    restart: always
+    ports:
+      - "55402:55402"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/ims/uploads:/uploads
+  ##############################################################
+  recruitment-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/rpm:dev
+    container_name: rpm-dev
+    restart: always
+    ports:
+      - "55409:55409"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/rpm/uploads:/uploads
+  ##############################################################
+  quiz-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/quiz:dev
+    container_name: quiz-dev
+    restart: always
+    ports:
+      - "55412:55412"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/quiz/uploads:/uploads
+  ##############################################################
+  hrm-service:
+    image: dhub.prm.novobit.eu/webapp/backend/dev/hrm:dev
+    container_name: hrm-dev
+    restart: always
+    ports:
+      - "55408:55408"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    links:
+      - config-service
+      - discovery-service
+      - key-service
+    volumes:
+      - /home/prm/dev/hrm/uploads:/uploads
+  ##############################################################
+  #scui-service:
+  #  image: dhub.prm.novobit.eu/webapp/backend/dev/scui:dev
+  #  container_name: scui-dev
+  #  restart: always
+  #  ports:
+  #    - "55411:55411"
+  #  depends_on:
+  #    discovery-service:
+  #      condition: service_healthy
+  #  links:
+  #    - config-service
+  #    - discovery-service
+  #    - key-service
+  #  volumes:
+  #    - /home/prm/dev/scui/uploads:/uploads
+  #  dns:
+  #    - 10.32.56.2
+  #    - 192.168.10.2
+  #  dns_search:
+  #    - novobit.eu
+  ##############################################################
+  ###  Gateway Backend service:
+  ##############################################################
+  #gateway-service:
+  #  image: dhub.prm.novobit.eu/webapp/backend/dev/gateway:dev
+  #  container_name: gateway-dev
+  #  restart: always
+  #  ports:
+  #    - "8060:8060"
+  #  depends_on:
+  #    discovery-service:
+  #      condition: service_healthy
+  #  links:
+  #    - config-service
+  #    - discovery-service
+  ##############################################################
+  ###  Gateway frontend service:
+  ##############################################################
+  gateway-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/gateway:dev
+    container_name: gateway-fe-dev
+    restart: always
+    ports:
+      - "4000:4000"
+    depends_on:
+      - identity-service
+    links:
+      - identity-service
+  ##############################################################
+  ###  Frontend services:
+  ##############################################################
+  sysadmin-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/sysadmin:dev
+    container_name: sysadmin-fe-dev
+    restart: always
+    ports:
+      - "4001:4001"
+    depends_on:
+      - identity-service
+    links:
+      - identity-service
+  ##############################################################
+  calendar-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/cms:dev
+    container_name: calendar-fe-dev
+    restart: always
+    ports:
+      - "4003:4003"
+    depends_on:
+      - identity-service
+    links:
+      - identity-service
+  ##############################################################
+  recruitment-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/rpm:dev
+    container_name: rpm-fe-dev
+    restart: always
+    ports:
+      - "4002:4002"
+    depends_on:
+      - identity-service
+      - recruitment-service
+    links:
+      - identity-service
+      - recruitment-service
+  ##############################################################
+  condidate-fo-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/cfo:dev
+    container_name: cfo-fe-dev
+    restart: always
+    ports:
+      - "4004:4004"
+    depends_on:
+      - identity-service
+      - recruitment-service
+    links:
+      - identity-service
+      - recruitment-service
+  ##############################################################
+  quizz-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/quizz:dev
+    container_name: quizz-fe-dev
+    restart: always
+    ports:
+      - "4005:4005"
+    depends_on:
+      - identity-service
+      - quiz-service
+    links:
+      - identity-service
+      - quiz-service
+  ##############################################################
+  hrm-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/hrm:dev
+    container_name: hrm-fe-dev
+    restart: always
+    ports:
+      - "4006:4006"
+    depends_on:
+      - identity-service
+      - hrm-service
+    links:
+      - identity-service
+      - hrm-service
+  ##############################################################
+  scui-fe-service:
+    image: dhub.prm.novobit.eu/webapp/frontend/dev/scui:dev
+    container_name: scui-fe-dev-4008
+    restart: always
+    ports:
+      - "4008:4008"
+    depends_on:
+      - identity-service
+    #    - scui-service
+    links:
+      - identity-service
+  #    - scui-service
