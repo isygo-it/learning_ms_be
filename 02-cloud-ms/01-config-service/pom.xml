@@ -1,0 +1,167 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <organization>
+        <name>novobit-services</name>
+        <url>http://www.novobit.eu</url>
+    </organization>
+
+    <groupId>eu.novobit.services</groupId>
+    <artifactId>config-service</artifactId>
+    <version>1.1.240531-S0533</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <spring-cloud.version>2022.0.3</spring-cloud.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <mainClass>eu.novobit.ConfigStarter</mainClass>
+                    <executable>true</executable>
+                    <workingDirectory>target</workingDirectory>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <inherited>false</inherited>
+                <executions>
+                    <!-- Associate the read-project-properties goal with the initialize phase, to read the properties file. -->
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${properties.file.name}</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- hibernate ddl-auto mode-->
+        <profile>
+            <id>ddl-update</id>
+            <properties>
+                <env.db.ddl.auto>update</env.db.ddl.auto>
+                <env.db.show.sql>true</env.db.show.sql>
+            </properties>
+        </profile>
+        <profile>
+            <id>ddl-validate</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <env.db.ddl.auto>validate</env.db.ddl.auto>
+                <env.db.show.sql>true</env.db.show.sql>
+            </properties>
+        </profile>
+        <profile>
+            <id>ddl-create</id>
+            <properties>
+                <env.db.ddl.auto>create</env.db.ddl.auto>
+                <env.db.show.sql>true</env.db.show.sql>
+            </properties>
+        </profile>
+
+        <!-- properties loading profiles-->
+        <profile>
+            <id>build-dev-localhost</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/dev-localhost.properties
+                </properties.file.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>build-docker</id>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/docker.properties
+                </properties.file.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>build-dev</id>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/dev.properties</properties.file.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>build-qa</id>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/qa.properties</properties.file.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>build-pre-prod</id>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/pre-prod.properties</properties.file.name>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>build-prod</id>
+            <properties>
+                <properties.file.name>${project.basedir}/profile/prod.properties</properties.file.name>
+            </properties>
+        </profile>
+    </profiles>
+</project>

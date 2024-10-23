@@ -1,0 +1,140 @@
+server:
+  port: @mms.server.port@
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    #hostname: @eureka.instance.hostname@
+  client:
+    serviceUrl:
+      defaultZone: http://@eureka.instance.hostname@:@discovery.server.port@/eureka/
+
+camel:
+  springboot:
+    routes-include-pattern: file:camel/*.xml
+    xmlRoutes: file:camel/*.xml
+
+logging:
+  level:
+    eu.novobit: info
+    org.apache.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] ${LOG_LEVEL_PATTERN:-%5p} %m%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] ${LOG_LEVEL_PATTERN:-%5p} %m%n"
+  file: mms.log
+
+springdoc:
+  packagesToScan: eu.novobit
+  api-docs:
+    path=/api-docs:
+  swagger-ui:
+    path=/swagger-ui-custom:
+      html:
+    operationsSorter=method:
+
+spring:
+  hazelcast:
+    config: classpath:cache/hazelcast.xml
+  profiles:
+    active: development
+  output:
+    ansi:
+      enabled: always
+  kafka:
+    topics:
+      register-api-permission: @register-api-permission.topic@
+      register-account: @register-account.topic@
+      rpm-asso-account: @rpm.asso-account.topic@
+      hrm-asso-account: @hrm.asso-account.topic@
+      send-email: @send-email.topic@
+    producer:
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      bootstrap-servers: @kafka.producer.hostname@:@kafka.producer.port@
+    consumer:
+      auto-offset-reset: earliest
+      bootstrap-servers: @kafka.consumer.hostname@:@kafka.consumer.port@
+      group-id: group-id
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  datasource:
+    continue-on-error: true
+    initialization-mode: always
+    mode: true
+    url: @mms.datasource.url@
+    username: @mms.datasource.username@
+    password: @mms.datasource.password@
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 1.0.0
+    check-locations: true
+    default-schema: @mms.schemas@
+    enabled: @flyway.enabled@
+    group: true
+    locations: @flyway.mig.locations@
+    target: @flyway.mig.target@
+    schemas: @mms.schemas@
+    table: schema_migration
+  jpa:
+    hibernate:
+      ddl-auto: @env.db.ddl.auto@ #create #update #validate #create-drop
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyHbmImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      show-sql: @env.db.show.sql@
+    properties:
+      org:
+        hibernate:
+          envers:
+            audit_table_prefix: AUD_
+            revision_type_field_name: REV_TYPE
+            audit_table_suffix: ''
+            store_data_at_delete: 'true'
+            revision_field_name: REV_ID
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+  mail:
+    host: 'smtp.office365.com'
+    port: 587
+    username: 'noreply.prm@novobit.eu'
+    password: 'E6lJhUwV0oD7q84oir9X'
+    debug: true
+    transport:
+      protocol: 'smtp'
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 5000
+          starttls:
+            enable: true
+          timeout: 5000
+          writetimeout: 5000
+
+mail:
+  mime:
+    charset: UTF-8
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+app:
+  feign:
+    shouldNotFilterKey: ++SHOULD_NOT_FILTER$
+  email:
+    async: true
+    broker: kafka # kafka, rest
+  upload:
+    directory: /uploads
+  i18n:
+    location: classpath:i18n/messages
+  jwt:
+    secretKey: JwTsEcReTkEy
+    deactivateOldTokens: false
+    signatureAlgorithm: HS256
+    life-time-ms: 14400000
+    storage-type: LOCAL

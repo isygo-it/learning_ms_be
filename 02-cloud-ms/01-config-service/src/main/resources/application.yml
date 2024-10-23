@@ -1,0 +1,7 @@
+server:
+  port: @config.server.port@
+spring:
+  hazelcast:
+    config: classpath:cache/hazelcast.xml
+  profiles:
+    active: native

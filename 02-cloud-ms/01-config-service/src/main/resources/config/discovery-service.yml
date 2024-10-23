@@ -1,0 +1,31 @@
+server:
+  port: @discovery.server.port@ #8061
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    #hostname: @eureka.instance.hostname@
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://@eureka.instance.hostname@:@discovery.server.port@/eureka/
+
+spring:
+  hazelcast:
+    config: classpath:cache/hazelcast.xml
+  profiles:
+    active: development
+  output:
+    ansi:
+      enabled: always
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+camel:
+  springboot:
+    routes-include-pattern: file:camel/*.xml
+    xmlRoutes: file:camel/*.xml
